@@ -9,13 +9,26 @@ int main()
 	string hostname;
 	string port;
 	string msg;
+	string querry;
+	int ret = 0;
+	/* string msg = "GET / HTTP/1.1\r\n"
+	 *         "Host: www.google.com\r\n"
+	 *         "\r\n"; */
 
 	cout << "Host >> ";
 	cin >> hostname;
 	cout << "Port >> "; 
 	cin >> port;
 	cout << "Message >> ";
-	cin >> msg;
+	getline(cin, querry);
+	while (getline(cin, querry) && !querry.empty())
+	{
+		msg += querry;
+		msg += '\n';
+	}
+	msg += '\n';
+	/* getline(cin >> ws, msg);  */
+	/* cin >> msg; */
 
 	char *buf;
 	buf = (char *)malloc(1024);
@@ -24,9 +37,11 @@ int main()
 	BlockingClient *mClient = new BlockingClient();
 	if (mClient->Connect(hostname, port) < 0)
 	{
-		cout << "Failed to connect to " << hostname << "-" << port << endl;
+		cout << "Failed to connect to " << hostname << ":" << port << endl;
 		goto cleanup;
 	}
+
+	cout << "Successfully connect to " << hostname << ":" << port << "!!!" << endl;
 
 	if (mClient->Querry(msg) < 0)
 	{
@@ -34,26 +49,28 @@ int main()
 		goto cleanup;
 	}
 
-	/* char *buf;
-	 * buf = (char *)malloc(1024);
-	 * memset(buf, 0x00, 1024); */
+	cout << "Sending querry: \"" << msg << "\"" << endl;
 
-	for (int i = 0; i < 10; i++)
+	cout << "Waiting responses from " << hostname << "..." << endl;
+	cout << "*****/*****/*****" << endl;
+
+	ret = mClient->Post(buf, 1023);
+	if (ret == 0)
 	{
-		int ret = mClient->Post(buf, 1023);
-		if (ret == 0)
-			break;
-		else if (ret < 0)
-		{
-			cout << "Failed to get response!" << endl;
-			goto cleanup;
-		}
-		else
-		{
-			buf[1023] = '\0';
-			cout << buf << endl;
-		}
+		cout << "Peer is disconnected!!!" << endl;
 	}
+	else if (ret < 0)
+	{
+		cout << "Failed to get response!" << endl;
+	}
+	else
+	{
+		buf[1023] = '\0';
+		cout << buf << endl;
+	}
+
+	cout << "*****/*****/*****" << endl;
+	cout << "Disconnected from " << hostname << ":" << port << "!!!" << endl;
 
 cleanup:
 	if (buf)
