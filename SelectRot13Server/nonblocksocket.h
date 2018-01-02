@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <sys/socket.h>
 #include <fcntl.h>
 
@@ -14,8 +15,10 @@ class NonBlockSocket {
 	public:
 		NonBlockSocket(int fd = 0);
 		~NonBlockSocket();
-		int read(/*arguments*/);
-		int write(/*arguments*/);
+		int read();
+		int write();
+		int socket() const { return mSocketFd; }
+		bool isWriting() const { return mWriting; }
 	private:
 		char Rot13(char c);
 };

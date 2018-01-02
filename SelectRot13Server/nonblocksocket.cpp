@@ -12,6 +12,8 @@ NonBlockSocket::NonBlockSocket(int fd)
 
 NonBlockSocket::~NonBlockSocket()
 {
+	if (mSocketFd)
+		close(mSocketFd);
 	if (mBuf)
 	{
 		delete [] mBuf;

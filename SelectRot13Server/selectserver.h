@@ -8,6 +8,8 @@
 
 #include <vector>
 
+#define MAX_LISTENER 16
+
 using namespace std;
 
 class SelectServer {
@@ -20,5 +22,5 @@ class SelectServer {
 		SelectServer(int port);
 		~SelectServer();
 		int Build();
-		void Run();
+		int Run();
 };

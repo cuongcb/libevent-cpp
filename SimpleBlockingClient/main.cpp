@@ -19,14 +19,6 @@ int main()
 	cin >> hostname;
 	cout << "Port >> "; 
 	cin >> port;
-	cout << "Message >> ";
-	getline(cin, querry);
-	while (getline(cin, querry) && !querry.empty())
-	{
-		msg += querry;
-		msg += '\n';
-	}
-	msg += '\n';
 	/* getline(cin >> ws, msg);  */
 	/* cin >> msg; */
 
@@ -42,6 +34,15 @@ int main()
 	}
 
 	cout << "Successfully connect to " << hostname << ":" << port << "!!!" << endl;
+
+	cout << "Message >> ";
+	getline(cin, querry);
+	while (getline(cin, querry) && !querry.empty())
+	{
+		msg += querry;
+		msg += '\n';
+	}
+	msg += '\n';
 
 	if (mClient->Querry(msg) < 0)
 	{
