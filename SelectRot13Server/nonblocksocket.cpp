@@ -1,5 +1,6 @@
 #include "nonblocksocket.h"
 #include <errno.h>
+#include <iostream>
 
 NonBlockSocket::NonBlockSocket(int fd)
 {

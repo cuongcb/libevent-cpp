@@ -5,22 +5,12 @@ SelectServer::SelectServer()
 {
 	mListener = -1;
 	mPort = 8000;
-	/* mSockets.reserve(FD_SETSIZE); */
-	/* for (int socket_i = 0; socket_i < FD_SETSIZE; socket_i++)
-	 * {
-	 *         mSockets[socket_i] = NULL;
-	 * } */
 }
 
 SelectServer::SelectServer(int port)
 {
 	mListener = -1;
 	mPort = port;
-	/* mSockets.reserve(FD_SETSIZE); */
-	/* for (int socket_i = 0; socket_i < FD_SETSIZE; socket_i++)
-	 * {
-	 *         mSockets[socket_i] = NULL;
-	 * } */
 }
 
 SelectServer::~SelectServer()
@@ -77,24 +67,15 @@ int SelectServer::Run()
 		FD_SET(mListener, &readset);
 
 		// Category other sockets
-		std::cout << "Vector size(" << mSockets.size() << ")" << std::endl;
-		std::cout << "FD_SETSIZE(" << FD_SETSIZE << ")" << std::endl;
-
 		for (int socket_i = 0; socket_i < (int)mSockets.size(); socket_i++)
 		{
-			/* if (mSockets[socket_i] != NULL) */
+			if (mSockets[socket_i]->socket() >= maxFds) maxFds = mSockets[socket_i]->socket();
+			FD_SET(mSockets[socket_i]->socket(), &readset);
+			if (mSockets[socket_i]->isWriting())
 			{
-				std::cout << "Before Socket_i(" << mSockets[socket_i]->socket() << ")" << std::endl;
-				if (mSockets[socket_i]->socket() >= maxFds) maxFds = mSockets[socket_i]->socket();
-				FD_SET(mSockets[socket_i]->socket(), &readset);
-				if (mSockets[socket_i]->isWriting())
-				{
-					FD_SET(mSockets[socket_i]->socket(), &writeset);
-				}
+				FD_SET(mSockets[socket_i]->socket(), &writeset);
 			}
 		}
-
-		std::cout << "Max FD(" << maxFds << ")" << std::endl;
 
 		// Polling on non-blocking sockets by select()
 		if (select(maxFds + 1, &readset, &writeset, &exset, NULL) < 0)
@@ -112,10 +93,8 @@ int SelectServer::Run()
 				close(newFd);
 			else
 			{
-				/* mSockets[newFd-1] = new NonBlockSocket(); */
 				NonBlockSocket *socket = new NonBlockSocket(newFd);
 				mSockets.push_back(socket);
-				std::cout << "New connection(" << newFd << ") " << std::endl;
 			}
 		}
 
@@ -123,28 +102,26 @@ int SelectServer::Run()
 		for (int socket_i = 0; socket_i < (int)mSockets.size(); socket_i++)
 		{
 			int ret = 0;
-			std::cout << "Socket(" << socket_i << ")" << std::endl;
+			/* std::cout << "Socket(" << mSockets[socket_i]->socket() << ")" << std::endl; */
 			if (socket_i == mListener)
 				continue; // already handle above
 			
 			if (FD_ISSET(mSockets[socket_i]->socket(), &readset))
 			{
-				std::cout << "Do read..." << std::endl;
 				ret = mSockets[socket_i]->read();
-				std::cout << "Read done!" << std::endl;
 			}
 			
 			if (ret == 0 && FD_ISSET(mSockets[socket_i]->socket(), &writeset))
 			{
-				std::cout << "Do write..." << std::endl;
 				ret = mSockets[socket_i]->write();
-				std::cout << "Write done!" << std::endl;
 			}
 
 			if (ret)
 			{
+				delete mSockets[socket_i];
+				/* cout << "Vector's size(" << mSockets.size() << ")" << endl;
+				 * cout << "Element socket(" << mSockets[socket_i]->socket() << ")" << endl; */
 				mSockets.erase(mSockets.begin() + socket_i);
-				/* delete mSockets[socket_i]; */
 			}
 		}
 	}
